@@ -1,0 +1,376 @@
+<?php
+namespace App\Http\Controllers;
+
+use App\Http\Facades\Token;
+use App\Http\Models\User as UserModel;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Config;
+use App\Http\Facades\User;
+use App\Http\Validations\UserValidation;
+use Symfony\Component\HttpFoundation\Response;
+use App\Http\Facades\FileManipulation;
+use App\Http\Facades\Media;
+use App\Http\Services\FileManipulationService;
+use App\Http\Validations\MediaValidation;
+
+class UsersController extends Controller
+{
+    /**
+     * @var Request
+     */
+    private $request;
+    /**
+     * @var UserValidation
+     */
+    private $validation;
+    private $trashed;
+	/**
+     * @var MediaValidation
+    */
+    private $mediaValidation;
+    /**
+     * @param Request $request
+     * @param UserValidation $validation
+     */
+    public function __construct(Request $request,UserValidation $validation, MediaValidation $mediaValidation)
+    {
+        $this->request = $request;
+        $this->validation = $validation;
+        $this->trashed = $this->request->input('trashed','false');
+		$this->mediaValidation = $mediaValidation;
+    }
+
+    /**
+     * Display a listing of the resource.
+     *
+     * @return Response
+     */
+    public function index()
+    {
+        if($this->request->all()){
+            return User::search($this->request->all(), $this->request->input('perPage',env('DEFAULT_PAGE_ITEMS')));
+        }
+        return User::getList($this->request->input('perPage',env('DEFAULT_PAGE_ITEMS')), $this->trashed);
+    }
+
+    /**
+     * Display a listing of the resource.
+     *
+     * @return Response
+     */
+    public function indexInspectors()
+    {
+        if($this->request->all()){
+            return User::searchInspector($this->request->all(), $this->request->input('perPage',env('DEFAULT_PAGE_ITEMS')));
+        }
+        return User::getList($this->request->input('perPage',env('DEFAULT_PAGE_ITEMS')), $this->trashed);
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param Request $request
+     * @return Response
+     */
+    public function store(Request $request)
+    {
+        //get role_id from SecureRoute
+        $this->request->attributes->get('role_id')?$roleId = $this->request->attributes->get('role_id'):$roleId = env('DEFAULT_ROLE_ID');
+        $params = $request->all();
+        $params['role_id'] = $roleId;
+
+        //check if the received data is valid
+        $response = $this->validation->validateCreateUser($params);
+        if ($response !== true) {
+            return $this->responseWithError($response);
+        }
+
+        unset($params['password_confirmation']);
+        $newUser = User::create($params);
+
+        if ($newUser) {
+
+            if ($roleId == 3) {
+                //register user to mailchimp
+                User::registerMailChimp($newUser);
+            }
+
+            //check if is admin
+            $isAdmin = $this->request->attributes->get('is_admin');
+
+            if(isset($isAdmin)){
+                $response = User::notifyRegister($request->only(['email']));
+                if(!$response){
+                    return $this->responseWithError(['Mail was not send.']);
+                }
+            }else{
+                $response = User::notifyRegisterAnonymous($request->only(['email']));
+            }
+
+            return $this->responseCreated($newUser);
+        }
+
+        return $this->responseWithError([]);
+    }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  int $id
+     * @return Response
+     */
+    public function show($id)
+    {
+        $storedUser = User::getById($id);
+        if ($storedUser) {
+            return $this->responseOk($storedUser);
+        }
+
+        return $this->responseWithError(['User not found.']);
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  int $id
+     * @param Request $request
+     * @return Response
+     */
+    public function update($id, Request $request)
+    {
+        //check if the received data is valid
+        $response = $this->validation->validateUpdateUser($request->all(), $id);
+
+        if ($response !== true) {
+            return $this->responseWithError($response);
+        }
+
+        $storedUser = User::getById($id);
+
+        $updatedUser = User::update($id, $request->only(['first_name','last_name','email','password','role_id']));
+        if($updatedUser){
+
+            User::updateMailChimp($storedUser['data']['email'],$updatedUser);
+
+            return $this->responseOk($updatedUser);
+        }
+
+        return $this->responseWithError(['Record was not updated.']);
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int $id
+     * @return Response
+     */
+    public function destroy($id)
+    {
+        $deletedUser = User::where(['id' => $id]);
+        if(User::delete($id)){
+            User::removeMailChimp($deletedUser->email);
+            return $this->responseDeleted();
+        }
+
+        return $this->responseWithError(['Record was not deleted.']);
+    }
+
+    /**
+     * Restore the specified resource from storage
+     *
+     * @param $id
+     * @return Response
+     */
+    public function restore($id)
+    {
+        if(User::restore($id)){
+            return $this->responseOk([]);
+        }
+
+        return $this->responseWithError(['Record was not restored.']);
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @internal param Request $request
+     */
+    public function upload()
+    {
+        $response = $this->mediaValidation->validateCreateMedia($this->request->all());
+
+        $token = $this->request->header('Authorization');
+        $userId = Token::getUserId($token);
+        $user = User::getById($userId);
+
+        //check if user is admin
+        if($user['data']['role']['role_id']=='1'){
+            $userId = $this->request->input('user_id');
+        }
+
+        $upload = $this->request->input('upload');
+
+        //check if token exit
+        if(empty($userId)) {
+            return $this->responseWithError([]);
+        }
+
+        if ($response !== true) {
+            return $this->responseWithError($response);
+        }
+
+        $width = $this->request->input('width');
+        $height = $this->request->input('height');
+        $collection = $this->request->input('collection',false);
+
+        $result = Media::create($collection, $width, $height);
+
+        switch($result){
+            case FileManipulationService::BAD_REQUEST:
+                return $this->responseWithError([]);
+                break;
+            case FileManipulationService::CHUNK_NOT_FINAL:
+                return $this->responseOk(['message' => 'This is not a final chunk, continue to upload.']);
+                break;
+        }
+
+        //update appropriate field image_id or file_id
+        $upload == 'media' ? $uploadField['image_id'] = $result['data']['image_id']:$uploadField['file_id'] = $result['data']['image_id'];
+        $user = UserModel::find($userId);
+        $user->profile()->update($uploadField);
+        //User::update($userId, $uploadField);
+        return $this->responseOk($result);
+    }
+
+    public function check()
+    {
+        $result = Media::check();
+        if ($result) {
+            return $this->responseOk([]);
+        }
+        return $this->responseDeleted([]);
+    }
+
+    /**
+     * Delete profile image.
+     * @param $userId
+     * @return JSON
+     */
+    public function deleteProfile($userId)
+    {
+        //get user_id from SecureRoute
+        $userId = $this->request->attributes->get('user_id');
+        //$storedUser = User::getById($userId);
+        $storedUser = UserModel::find($userId)->profile;
+        $imageId = $storedUser->image_id;
+
+        if($imageId){
+            if (Media::delete($imageId)) {
+                $storedUser->update(['image_id'=>' ']);
+                //User::update($userId, ['image_id'=>' ']);
+                return $this->responseDeleted();
+            }
+
+            return $this->responseWithError(['Profile image was not deleted.']);
+        }
+        return $this->responseWithError(['Profile image was not found.']);
+    }
+
+    /**
+     * Delete resume.
+     * @param $userId
+     * @return JSON
+     */
+    public function deleteResume($userId)
+    {
+        //get user_id from SecureRoute
+        $userId = $this->request->attributes->get('user_id');
+        //$storedUser = User::getById($userId);
+        $storedUser = UserModel::find($userId)->profile;
+        $fileId = $storedUser->file_id;
+
+        if($fileId){
+            if (Media::delete($fileId)) {
+                $storedUser->update(['file_id'=>' ']);
+                //User::update($userId, ['file_id'=>'']);
+                return $this->responseDeleted();
+            }
+
+            return $this->responseWithError(['Resume was not deleted.']);
+        }
+        return $this->responseWithError(['Resume was not found.']);
+    }
+
+    public function contactUs()
+    {
+        $token = $this->request->header('Authorization');
+        $userId = Token::getUserId($token);
+        $user = User::getById($userId);
+        if($user){
+
+            $response = $this->validation->validateContactUsForm($this->request->all());
+
+            if ($response !== true) {
+                return $this->responseWithError($response);
+            }
+            $params = $this->request->all();
+            $params['user'] = $user;
+            $response = User::notifyContactUs($params);
+
+            if(!$response){
+                return $this->responseWithError(['Mail was not send.']);
+            }
+
+            return $this->responseOk([]);
+        }
+        return $this->responseWithError(['User not found.']);
+
+    }
+
+    /**
+     * Get from rogzone.
+     * @param $rigzoneId
+     * @return JSON
+     */
+    public function getFromRigzone($rigzoneId)
+    {
+        $token = $this->request->header('Authorization');
+        $userId = Token::getUserId($token);
+        $user = User::getById($userId);
+        
+        //check if user is admin
+        //if($user['data']['role']['role_id']!='1'){
+        //    return $this->responseUnauthorized();
+        //}
+
+        $storedRigzone = User::getFromRigzone($rigzoneId);
+        if ($storedRigzone) {
+            return $this->responseOk($storedRigzone);
+        }
+
+        return $this->responseWithError(['User from rigzone was not found.']);
+    }
+
+    /**
+     * @param Request $request
+     * @return JSON
+     */
+    public function changePassword(Request $request)
+    {
+        $params = $request->all();
+        //get user_id from SecureRoute
+        $params['user_id'] = $this->request->attributes->get('user_id');
+
+        //check if the received data is valid
+        $response = $this->validation->validateChangePassword($params);
+
+        if ($response !== true) {
+            return $this->responseWithError($response);
+        }
+        $response = User::changePassword($params);
+        if ($response) {
+            return $this->responseCreated([]);
+        }
+        return $this->responseWithError([]);
+    }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "jke/jobs",
+  "description": "Provide API for jobs",
+  "require": {
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^5.0@dev"
+  },
+  "license": "closed",
+  "authors": [
+    {
+      "name": "Petar Ristov",
+      "email": "petar.ristov@it-labs.com"
+    }
+  ],
+  "minimum-stability": "dev"
+}

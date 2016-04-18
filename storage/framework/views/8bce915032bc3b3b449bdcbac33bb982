@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>LMS</title>
+</head>
+<body>
+<p><?php echo e($body); ?></p>
+<p>User info :</p>
+<p>First name:<?php echo e($firstName); ?></p>
+<p>Last name: <?php echo e($lastName); ?></p>
+<p>Email: <?php echo e($email); ?></p>
+<?php if($haveMobilePhone): ?>
+<p>Mobile phone: <?php echo e($mobilePhone); ?></p>
+<?php endif; ?>
+<p>Thank you!</p>
+</body>
+</html>

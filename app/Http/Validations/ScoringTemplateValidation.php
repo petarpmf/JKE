@@ -1,0 +1,93 @@
+<?php
+namespace App\Http\Validations;
+
+class ScoringTemplateValidation extends BaseValidation
+{
+    public function validateCreateScoringTemplate($requestData)
+    {
+        $validationData = ['desired_job_id'=>'required|unique:scoring_templates,desired_job_id',
+                           'work_experience_weight' => 'required|numeric',
+                           'work_experience_criteria_level1' => 'required|regex:/^\d{1,3}(\-\d{1,3})?(\+)?$/',
+                           'certificates_weight' => 'required|numeric',
+                           'certificates_criteria_level1' => 'required|regex:/^\d{1,3}(\-\d{1,3})?(\+)?$/',
+                           'auditor_weight' => 'required|numeric',
+                           'auditor_criteria_level1' => 'required',
+                           'disc_weight' => 'required|numeric',
+                           'disc_criteria_level1' => 'required|regex:/^\d{1,3}(\-\d{1,3})?(\+)?$/',
+                           'values_weight' => 'required|numeric',
+                           'values_criteria_level1' => 'required|regex:/^\d{1,3}(\-\d{1,3})?(\+)?$/',
+                           'attributes_weight' => 'required|numeric',
+                           'attributes_criteria_level1' => 'required|regex:/^\d{1,3}(\-\d{1,3})?(\+)?$/',
+                           'work_experience_criteria_level2' => 'required|regex:/^\d{1,3}(\-\d{1,3})?(\+)?$/',
+                           'certificates_criteria_level2' => 'required|regex:/^\d{1,3}(\-\d{1,3})?(\+)?$/',
+                           'auditor_criteria_level2' => 'required',
+                           'disc_criteria_level2' => 'required|regex:/^\d{1,3}(\-\d{1,3})?(\+)?$/',
+                           'values_criteria_level2' => 'required|regex:/^\d{1,3}(\-\d{1,3})?(\+)?$/',
+                           'attributes_criteria_level2' => 'required|regex:/^\d{1,3}(\-\d{1,3})?(\+)?$/',
+                           'work_experience_criteria_level3' => 'required|regex:/^\d{1,3}(\-\d{1,3})?(\+)?$/',
+                           'certificates_criteria_level3' => 'required|regex:/^\d{1,3}(\-\d{1,3})?(\+)?$/',
+                           'auditor_criteria_level3' => 'required',
+                           'disc_criteria_level3' => 'required|regex:/^\d{1,3}(\-\d{1,3})?(\+)?$/',
+                           'values_criteria_level3' => 'required|regex:/^\d{1,3}(\-\d{1,3})?(\+)?$/',
+                           'attributes_criteria_level3' => 'required|regex:/^\d{1,3}(\-\d{1,3})?(\+)?$/',
+                           'work_experience_criteria_level4' => 'required|regex:/^\d{1,3}(\-\d{1,3})?(\+)?$/',
+                           'certificates_criteria_level4' => 'required|regex:/^\d{1,3}(\-\d{1,3})?(\+)?$/',
+                           'auditor_criteria_level4' => 'required',
+                           'disc_criteria_level4' => 'required|regex:/^\d{1,3}(\-\d{1,3})?(\+)?$/',
+                           'values_criteria_level4' => 'required|regex:/^\d{1,3}(\-\d{1,3})?(\+)?$/',
+                           'attributes_criteria_level4' => 'required|regex:/^\d{1,3}(\-\d{1,3})?(\+)?$/',
+                           'work_experience_criteria_level5' => 'required|regex:/^\d{1,3}(\-\d{1,3})?(\+)?$/',
+                           'certificates_criteria_level5' => 'required|regex:/^\d{1,3}(\-\d{1,3})?(\+)?$/',
+                           'auditor_criteria_level5' => 'required',
+                           'disc_criteria_level5' => 'required|regex:/^\d{1,3}(\-\d{1,3})?(\+)?$/',
+                           'values_criteria_level5' => 'required|regex:/^\d{1,3}(\-\d{1,3})?(\+)?$/',
+                           'attributes_criteria_level5' => 'required|regex:/^\d{1,3}(\-\d{1,3})?(\+)?$/'
+        ];
+
+        return $this->validate($validationData, $requestData);
+    }
+
+    public function validateUpdateScoringTemplate($requestData, $id)
+    {
+        $validationData = ['desired_job_id'=>'required|unique:scoring_templates,desired_job_id,'.$id,
+                            'work_experience_weight' => 'required|numeric',
+                            'work_experience_criteria_level1' => 'required|regex:/^\d{1,3}(\-\d{1,3})?(\+)?$/',
+                            'certificates_weight' => 'required|numeric',
+                            'certificates_criteria_level1' => 'required|regex:/^\d{1,3}(\-\d{1,3})?(\+)?$/',
+                            'auditor_weight' => 'required|numeric',
+                            'auditor_criteria_level1' => 'required',
+                            'disc_weight' => 'required|numeric',
+                            'disc_criteria_level1' => 'required|regex:/^\d{1,3}(\-\d{1,3})?(\+)?$/',
+                            'values_weight' => 'required|numeric',
+                            'values_criteria_level1' => 'required|regex:/^\d{1,3}(\-\d{1,3})?(\+)?$/',
+                            'attributes_weight' => 'required|numeric',
+                            'attributes_criteria_level1' => 'required|regex:/^\d{1,3}(\-\d{1,3})?(\+)?$/',
+                            'work_experience_criteria_level2' => 'required|regex:/^\d{1,3}(\-\d{1,3})?(\+)?$/',
+                            'certificates_criteria_level2' => 'required|regex:/^\d{1,3}(\-\d{1,3})?(\+)?$/',
+                            'auditor_criteria_level2' => 'required',
+                            'disc_criteria_level2' => 'required|regex:/^\d{1,3}(\-\d{1,3})?(\+)?$/',
+                            'values_criteria_level2' => 'required|regex:/^\d{1,3}(\-\d{1,3})?(\+)?$/',
+                            'attributes_criteria_level2' => 'required|regex:/^\d{1,3}(\-\d{1,3})?(\+)?$/',
+                            'work_experience_criteria_level3' => 'required|regex:/^\d{1,3}(\-\d{1,3})?(\+)?$/',
+                            'certificates_criteria_level3' => 'required|regex:/^\d{1,3}(\-\d{1,3})?(\+)?$/',
+                            'auditor_criteria_level3' => 'required',
+                            'disc_criteria_level3' => 'required|regex:/^\d{1,3}(\-\d{1,3})?(\+)?$/',
+                            'values_criteria_level3' => 'required|regex:/^\d{1,3}(\-\d{1,3})?(\+)?$/',
+                            'attributes_criteria_level3' => 'required|regex:/^\d{1,3}(\-\d{1,3})?(\+)?$/',
+                            'work_experience_criteria_level4' => 'required|regex:/^\d{1,3}(\-\d{1,3})?(\+)?$/',
+                            'certificates_criteria_level4' => 'required|regex:/^\d{1,3}(\-\d{1,3})?(\+)?$/',
+                            'auditor_criteria_level4' => 'required',
+                            'disc_criteria_level4' => 'required|regex:/^\d{1,3}(\-\d{1,3})?(\+)?$/',
+                            'values_criteria_level4' => 'required|regex:/^\d{1,3}(\-\d{1,3})?(\+)?$/',
+                            'attributes_criteria_level4' => 'required|regex:/^\d{1,3}(\-\d{1,3})?(\+)?$/',
+                            'work_experience_criteria_level5' => 'required|regex:/^\d{1,3}(\-\d{1,3})?(\+)?$/',
+                            'certificates_criteria_level5' => 'required|regex:/^\d{1,3}(\-\d{1,3})?(\+)?$/',
+                            'auditor_criteria_level5' => 'required',
+                            'disc_criteria_level5' => 'required|regex:/^\d{1,3}(\-\d{1,3})?(\+)?$/',
+                            'values_criteria_level5' => 'required|regex:/^\d{1,3}(\-\d{1,3})?(\+)?$/',
+                            'attributes_criteria_level5' => 'required|regex:/^\d{1,3}(\-\d{1,3})?(\+)?$/'
+                         ];
+
+        return $this->validate($validationData, $requestData);
+    }
+}

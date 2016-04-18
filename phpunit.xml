@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit backupGlobals="false"
+         backupStaticAttributes="false"
+         bootstrap="bootstrap/app.php"
+         colors="true"
+         convertErrorsToExceptions="true"
+         convertNoticesToExceptions="true"
+         convertWarningsToExceptions="true"
+         processIsolation="false"
+         stopOnFailure="true"
+         syntaxCheck="false">
+    <testsuites>
+        <testsuite name="Application Test Suite">
+            <directory>./tests/</directory>
+        </testsuite>
+    </testsuites>
+
+    <testsuites>
+        <testsuite name="Application Test Suite">
+            <directory>./packages/itlabs/security/tests/</directory>
+        </testsuite>
+    </testsuites>
+
+    <testsuites>
+        <testsuite name="Application Test Suite">
+            <directory>./packages/itlabs/lessons/tests/</directory>
+        </testsuite>
+    </testsuites>
+
+   <testsuites>
+       <testsuite name="Application Test Suite">
+           <directory>./packages/itlabs/media/tests/</directory>
+       </testsuite>
+   </testsuites>
+
+    <php>
+        <env name="APP_ENV" value="testing"/>
+        <env name="CACHE_DRIVER" value="array"/>
+        <env name="SESSION_DRIVER" value="array"/>
+        <env name="QUEUE_DRIVER" value="sync"/>
+
+
+<env name="DB_CONNECTION" value="mysql"/>
+<env name="DB_HOST" value="localhost"/>
+<env name="DB_DATABASE" value="test_lms"/>
+<env name="DB_USERNAME" value="root"/>
+<env name="DB_PASSWORD" value=""/>
+
+<env name="DB_MEDIA_CONNECTION" value="mysql"/>
+<env name="DB_MEDIA_HOST" value="localhost"/>
+<env name="DB_MEDIA_DATABASE" value="test_media"/>
+<env name="DB_MEDIA_USERNAME" value="root"/>
+<env name="DB_MEDIA_PASSWORD" value=""/>
+
+
+<env name="DB_SECURITY_CONNECTION" value="mysql"/>
+<env name="DB_SECURITY_HOST" value="localhost"/>
+<env name="DB_SECURITY_DATABASE" value="test_security"/>
+<env name="DB_SECURITY_USERNAME" value="root"/>
+<env name="DB_SECURITY_PASSWORD" value=""/>
+
+<env name="DB_LESSONS_CONNECTION" value="mysql"/>
+<env name="DB_LESSONS_HOST" value="localhost"/>
+<env name="DB_LESSONS_DATABASE" value="test_lessons"/>
+<env name="DB_LESSONS_USERNAME" value="root"/>
+<env name="DB_LESSONS_PASSWORD" value=""/>
+
+
+<env name="FILESYSTEM_DRIVER" value="local"/>
+<env name="FILESYSTEM_CLOUD" value="s3"/>
+
+<env name="S3_KEY" value="AKIAJP44OPOMTQ7SRBDQ"/>
+<env name="S3_SECRET" value="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"/>
+<env name="S3_REGION" value="us-west-2"/>
+<env name="S3_BUCKET" value="lmscontent"/>
+<env name="S3_CLOUDFRONT" value="lmscontent.it-labs.com"/>
+
+
+    </php>
+</phpunit>
